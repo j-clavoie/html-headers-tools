@@ -1,0 +1,61 @@
+{
+	"name": "html-headers-tools",
+	"displayName": "HTML Headers tools",
+	"description": "Script that help to manage headers (h2 to h6), validate hierarchy, and create the list used inside a table of contents",
+	"version": "0.0.6",
+	"publisher": "j-clavoie",
+	"engines": {
+		"vscode": "^1.30.0"
+	},
+	"categories": [
+		"Other"
+	],
+	"activationEvents": [
+		"onCommand:html-headers-tools.create_toc",
+		"onCommand:html-headers-tools.validate_headers",
+		"onCommand:html-headers-tools.set_headers_ids"
+	],
+	"main": "./dist/extension.js",
+	"contributes": {
+		"commands": [
+			{
+				"command": "html-headers-tools.create_toc",
+				"title": "DDPD - Headers - Create Table of contents"
+			},
+			{
+				"command": "html-headers-tools.validate_headers",
+				"title": "DDPD - Headers - Validate headers hierarchy"
+			},
+			{
+				"command": "html-headers-tools.set_headers_ids",
+				"title": "DDPD - Headers - Set/Reset IDs"
+			}
+		]
+	},
+	"dependencies": {
+		"jsdom": "^16.4.0"
+	},
+	"scripts": {
+		"lint": "eslint .",
+		"pretest": "npm run lint",
+		"test": "node ./test/runddpd.js",
+		"vscode:prepublish": "webpack --mode production",
+		"webpack": "webpack --mode development",
+		"webpack-dev": "webpack --mode development --watch",
+		"test-compile": "tsc -p ./"
+	},
+	"devDependencies": {
+		"@types/glob": "^7.1.3",
+		"@types/mocha": "^8.0.0",
+		"@types/node": "^12.11.7",
+		"@types/vscode": "^1.30.0",
+		"eslint": "^7.9.0",
+		"glob": "^7.1.6",
+		"mocha": "^8.1.3",
+		"vscode-test": "^1.4.0",
+		"ts-loader": "^8.0.12",
+		"typescript": "^4.1.2",
+		"webpack": "^5.10.1",
+		"webpack-cli": "^4.2.0"
+	}
+}
