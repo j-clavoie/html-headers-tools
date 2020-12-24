@@ -2,12 +2,16 @@
 	"name": "html-headers-tools",
 	"displayName": "HTML Headers tools",
 	"description": "Script that help to manage headers (h2 to h6), validate hierarchy, and create the list used inside a table of contents",
-	"version": "0.0.6",
+	"version": "0.0.7",
 	"publisher": "j-clavoie",
 	"engines": {
 		"vscode": "^1.30.0"
 	},
+	"author": {
+		"name": "J-C Lavoie"
+	},
 	"categories": [
+		"Linters",
 		"Other"
 	],
 	"activationEvents": [
@@ -15,26 +19,32 @@
 		"onCommand:html-headers-tools.validate_headers",
 		"onCommand:html-headers-tools.set_headers_ids"
 	],
-	"main": "./dist/extension.js",
+	"main": "./src/extension.js",
 	"contributes": {
 		"commands": [
 			{
 				"command": "html-headers-tools.create_toc",
-				"title": "DDPD - Headers - Create Table of contents"
+				"title": "HTML Headers - Create Table of contents"
 			},
 			{
 				"command": "html-headers-tools.validate_headers",
-				"title": "DDPD - Headers - Validate headers hierarchy"
+				"title": "HTML Headers - Validate headers hierarchy"
 			},
 			{
 				"command": "html-headers-tools.set_headers_ids",
-				"title": "DDPD - Headers - Set/Reset IDs"
+				"title": "HTML Headers - Set/Reset IDs"
 			}
 		]
 	},
 	"dependencies": {
 		"jsdom": "^16.4.0"
 	},
+	"license": "See file LICENSE",
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/j-clavoie/html-headers-tools.git"
+	},
+	"readme": "https://github.com/j-clavoie/html-headers-tools/blob/main/README.md",
 	"scripts": {
 		"lint": "eslint .",
 		"pretest": "npm run lint",

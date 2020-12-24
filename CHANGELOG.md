@@ -1,5 +1,4 @@
 # Change Log
 
-## [Unreleased]
-
-[0.0.3]: Working script (3 - Validate headers, set/reset IDs, create Table of contents html List).
+## [0.0.7] - 2020-12-XX 
+Working script (3 - Validate headers, set/reset IDs, create Table of contents html List).
