@@ -10,6 +10,11 @@
 	"author": {
 		"name": "J-C Lavoie"
 	},
+	"keywords": [
+		"html",
+		"headers (h2-h6)",
+		"validation"
+	],
 	"categories": [
 		"Linters",
 		"Other"
@@ -34,7 +39,17 @@
 				"command": "html-headers-tools.set_headers_ids",
 				"title": "HTML Headers - Set/Reset IDs"
 			}
-		]
+		],
+		"configuration": {
+			"title": "HTML Links Checker",
+			"properties": {
+				"html-headers-tools.prefixForNewIDs": {
+					"description": "Specifies the prefix for new IDs (ID created will start with this string).",
+					"type": "string",
+					"default": "h"
+				}
+			}
+		}
 	},
 	"dependencies": {
 		"jsdom": "^16.4.0"

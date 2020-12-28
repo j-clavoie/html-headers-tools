@@ -19,8 +19,6 @@ module.exports = {
   },
 
 
-
-
   /**
    * Method to get the current active editor
    * If no editor is opened then return false
@@ -60,6 +58,7 @@ module.exports = {
   /**
    * Method to get text selected in editor
    * @param {boolean} selectWholeText If no text selected then the whole text is selected
+   * Return the text selected or whole text
    */
   getTextSelected: function getTextSelected(selectWholeText = false) {
     const editor = this.getActiveEditor();
@@ -71,11 +70,18 @@ module.exports = {
 
 
   /**
- * Method to know what's the language (French/English/etc) of the text of the code
- */
-  getLang: async function getLang(extensionConfigurationName) {
+   * Method that asks to user the language (english, french, etc) of the text (content) in the code
+   * The list could be stored in the Extension's properties but by default "editor.textLanguages" is used.
+   * In the default situation, the user's settings must have the "editor.textLanguages" parameters set properly.
+   */
+  getLang: async function getLang(extensionConfigurationName = "editor") {
     // Get Extension properties
-    const extConfigs = vscode.workspace.getConfiguration(extensionConfigurationName)
+    const textLanguages = vscode.workspace.getConfiguration(extensionConfigurationName).textLanguages;
+    if (textLanguages == null || textLanguages == undefined) {
+      vscode.window.showErrorMessage("The '" + extensionConfigurationName + ".textLanguages' is not set properly.");
+      return null;
+    }
+
     // Create a empty array that will contain all Workspace Names
     let listLang = [];
 
@@ -89,7 +95,7 @@ module.exports = {
     };
 
     // Pass through all Workspace set in Extension properties
-    extConfigs.lang.forEach(function (elem) {
+    textLanguages.forEach(function (elem) {
       // Add only the name to the array
       listLang.push(elem.langName);
     });
@@ -104,7 +110,7 @@ module.exports = {
     // Define de default return for this function (null)
     let landCode = null;
     // Pass through all Workspace set in Extension properties
-    extConfigs.lang.forEach(function (elem) {
+    textLanguages.forEach(function (elem) {
       // If the user's selection match set the path to return
       if (langName == elem.langName) {
         landCode = elem.langCode;
@@ -130,5 +136,54 @@ module.exports = {
     } else {
       return true;
     }
+  },
+
+  /**
+   * Method to get the position of the Selection in the Active Text Editor.
+   * Return: the start position of the selection
+   *         If no selection, then create a start position to 0,0 (beginning of the text editor)
+   */
+  getPositionSelection: function getPositionSelection() {
+    const myEditor = this.getActiveEditor();
+    let startSelectionRange;
+
+    if (myEditor.selection.isEmpty) {
+      startSelectionRange = new vscode.Position(0, 0);
+    } else {
+      startSelectionRange = myEditor.selection.start;
+    }
+
+    return startSelectionRange;
+  },
+
+
+  /** ***********************************************************************************************
+   * @param {JSDOM} DOM 
+   * @param {JSDOM.nodeElem} DOMelem Element of DOM to get the range position in Editor
+   * @param {boolean} fromSelection Indicates if the Selection starting point must be added or not.
+   */
+  getDOMelementPosition: function getDOMelementPosition(DOM, DOMelem, fromSelection = true) {
+    let startSelectionPosition;
+
+    // Get the node location
+    const nodeElem = DOM.nodeLocation(DOMelem);
+
+    // if the selection position must be considered than rerieve Selection's start position
+    // If not then the position won't be incremented
+    if (fromSelection){
+      startSelectionPosition = this.getPositionSelection();
+    } else {
+      new vscode.Position(0, 0);
+    }
+    
+    // Set the range of text the header in error
+    const elemRange = new vscode.Range(
+      nodeElem.startTag.startLine - 1 + startSelectionPosition.line,
+      nodeElem.startTag.startCol - 1,
+      nodeElem.startTag.endLine - 1 + startSelectionPosition.line,
+      nodeElem.startTag.endCol - 1
+    );
+
+    return elemRange;
   }
 };

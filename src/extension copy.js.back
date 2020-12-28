@@ -182,10 +182,9 @@ function validateHeader(myDOM) {
 /**********************************************************************************************
  * Method to check if headers passed in parameters already have ID
  * @param {JSDOM} myDOMHeaders DOM array that contains only headers (h2 to h6)
- * return true (IDs already exist) or false (no IDs already exist)
  */
 async function areTherePreviousHeadersIDs(myDOMHeaders, askQuestion = true) {
-	// Define process variables
+	// Define the default return value to false (no id already present)
 	let alreadyIDs = false;
 
 	// Check each headers, if ID is set than change the return value to TRUE (ID exists)
@@ -198,28 +197,23 @@ async function areTherePreviousHeadersIDs(myDOMHeaders, askQuestion = true) {
 	// If at least one header already has ID, ask a question to user 
 	// to validate if the process must continue or not (by default yes)
 	if (askQuestion && alreadyIDs) {
-		// Option for the dropdown popup
-		const options = vscode.QuickPickOptions = {
-			placeHolder: "Header(s) in selection already has an ID. Do you want to reset/replace all headers ID in selection?",
-			canPickMany: false,
+		// Define message option
+		let options = vscode.InputBoxOptions = {
 			ignoreFocusOut: true,
-			matchOnDescription: true,
-			matchOnDetail: true
+			prompt: "At least one header already has an ID. So, do you want to reset all headers ID?",
+			value: "Yes"
 		};
 
-		// Display the dropdown popup to user
-		const wantToResetIDs = await vscode.window.showQuickPick(["Yes", "No"], options);
-		// If Escape key has been used = exit without any other process
-		if (wantToResetIDs == undefined) {
-			return null;
-		}
-
-		if (wantToResetIDs.toLowerCase() == 'yes') {
-			alreadyIDs = false;
-		}
+		// Display message and if the answer is anything else than YES
+		// the process is stop now.comment
+		// If yes is selected by user then continue
+		await vscode.window.showInputBox(options).then(value => {
+			if (value.toLowerCase() == 'yes') {
+				alreadyIDs = false;
+			}
+		});
 	}
 
-	// return True if IDs are existing. False if not IDs already exist
 	return alreadyIDs;
 }
 
@@ -228,91 +222,79 @@ async function areTherePreviousHeadersIDs(myDOMHeaders, askQuestion = true) {
 /**********************************************************************************************
  * Method to create and set ID to headers passed in parameters
  * @param {JSDOM} myDOMHeaders DOM array that contains only headers from h2 to h6
- * @param {Array} previousIDs Array of all IDs already present in headers (default NULL)
  */
-async function setNewIDs(myDOMHeaders, keepPreviousIDs = false) {
-	let previousIDs;
-	if (keepPreviousIDs) {
-		previousIDs = getAlreadyExistingIDs(false);	// TODO: MUST INCLUDE IDs in selection
-	} else {
-		previousIDs = getAlreadyExistingIDs(true); // TODO: MUST EXCLUDE IDs in selection
-	}
-
-	// Get the prefix for new ID that will be created
-	const newid = await getPrefixNewID();
-
-	// Set variable for the process
+async function setNewIDs(myDOMHeaders) {
+	let newid = "h";
 	let b = 0;
 	let c = 0;
 	let d = 0;
 	let e = 0;
 	let f = 0;
 
-	// Process to set new ID to Headers
-	let prevlev = 0;
-	let tmpID = '';
-	myDOMHeaders.forEach(function (curHeader) {
-		const curLevel = parseInt(curHeader.tagName.match(/h(\d)/i)[1]);
-		let idAlreadyExists = true;
-		while (idAlreadyExists) {
-			switch (curLevel) {
-				case 2:
-					if (prevlev < curLevel) {
-						b = 0;
-					}
-					b++;
-					tmpID = newid + '_' + b;
-					break;
-				case 3:
-					if (prevlev < curLevel) {
-						c = 0;
-					}
-					c++;
-					tmpID = newid + '_' + b + '_' + c;
-					break;
-				case 4:
-					if (prevlev < curLevel) {
-						d = 0;
-					}
-					d++;
-					tmpID = newid + '_' + b + '_' + c + '_' + d;
-					break;
-				case 5:
-					if (prevlev < curLevel) {
-						e = 0;
-					}
-					e++;
-					tmpID = newid + '_' + b + '_' + c + '_' + d + '_' + e;
-					break;
-				case 6:
-					if (prevlev < curLevel) {
-						f = 0;
-					}
-					f++;
-					tmpID = newid + '_' + b + '_' + c + '_' + d + '_' + e + '_' + f;
+	// Ask to user the beginning string of new headers
+	let options = vscode.InputBoxOptions = {
+		ignoreFocusOut: true,
+		prompt: "Define the beginning string of IDs?",
+		value: "h"
+	};
 
-					break;
-			}
+	// Display message to ask the beginngin string of new headers
 
-			// Check if temporary ID already exists in the DOM
-			if (previousIDs.includes(tmpID)) {
-				idAlreadyExists = true;
-			} else {
-				idAlreadyExists = false;
-			}
-
-			// If ID is not existing AND (the current header has no ID already set OR no need to keep previous ID)
-			if (!idAlreadyExists && (curHeader.id == '' || keepPreviousIDs == false)) {
-				// Add ID to the current header
-				curHeader.setAttribute("id", tmpID);
-			}
-
-			// Define the previous header level with the current header level
-			prevlev = curLevel;
+	await vscode.window.showInputBox(options).then(value => {
+		if (value == undefined) {
+			newid = undefined;
+		} else {
+			newid = value.toLowerCase();
 		}
 	});
-	// Send a message to user to inform that process is completed
-	vscode.window.showInformationMessage("Process completed!");
+	// If Escape key has been used in the inputbox then exit (do nothing)
+	if (newid == undefined) {
+		return;
+	}
+
+	// Process to set new ID to Headers
+	let prevlev = 0;
+	myDOMHeaders.forEach(function (value) {
+		const intLevel = parseInt(value.tagName.match(/h(\d)/i)[1]);
+		switch (intLevel) {
+			case 2:
+				if (prevlev < intLevel) {
+					b = 0;
+				}
+				b++;
+				value.setAttribute("id", newid + '_' + b);
+				break;
+			case 3:
+				if (prevlev < intLevel) {
+					c = 0;
+				}
+				c++;
+				value.setAttribute("id", newid + '_' + b + '_' + c);
+				break;
+			case 4:
+				if (prevlev < intLevel) {
+					d = 0;
+				}
+				d++;
+				value.setAttribute("id", newid + '_' + b + '_' + c + '_' + d);
+				break;
+			case 5:
+				if (prevlev < intLevel) {
+					e = 0;
+				}
+				e++;
+				value.setAttribute("id", newid + '_' + b + '_' + c + '_' + d + '_' + e);
+				break;
+			case 6:
+				if (prevlev < intLevel) {
+					f = 0;
+				}
+				f++;
+				value.setAttribute("id", newid + '_' + b + '_' + c + '_' + d + '_' + e + '_' + f);
+				break;
+		}
+		prevlev = intLevel;
+	});
 }
 
 
@@ -323,13 +305,6 @@ async function setNewIDs(myDOMHeaders, keepPreviousIDs = false) {
  * 
  */
 async function setHeadersIDs() {
-	// Validate if headers respect the hierarchy and add error in "Problem" panel view
-	await validateAllHeaders();
-	// If error found, stop the current process
-	if (headers_diagColl.get(vscode.window.activeTextEditor.document.uri).length > 0) {
-		vscode.window.showErrorMessage("It's impossible to set/reset IDs. Check the 'Problems' tab for more detail.")
-		return;
-	}
 
 	// Get the active text editor
 	const myEditor = genFunc.getActiveEditor();
@@ -337,21 +312,27 @@ async function setHeadersIDs() {
 		return;
 	}
 
-	// Get the DOM from the selected part of code
-	let myDOM = getDOM();
+	// Retrieve the part of text to use in the Active Text Editor
+	// If text selected then it will be used, if not, the whole content is used
+	const theRange = genFunc.getRangeSelected(true);
 
-	// Get all headers in the DOM
-	const myDOMHeaders = myDOM.window.document.querySelectorAll("h2,h3,h4,h5,h6");
+	// Create a DOM from the selected text in active editor
+	let myDOM = new JSDOM(myEditor.document.getText(theRange), { includeNodeLocations: true, contentType: "text/html" });
 
-	// check if header(s) have IDs.
-	const keepPreviousIDs = await areTherePreviousHeadersIDs(myDOMHeaders);
-	// Escape key has been used in the question to user then stop process
-	if (keepPreviousIDs == null) {
+	// Validate if headers respect the hierarchy and add error in "Problem" panel view
+	let myDOMHeaders = validateHeader(myDOM);
+	if (myDOMHeaders == undefined || myDOMHeaders == false) {
 		return;
 	}
-	await setNewIDs(myDOMHeaders, keepPreviousIDs);
 
-	const theRange = genFunc.getRangeSelected(true);
+	// check if header(s) have IDs.
+	// If yes, then exit.
+	if (await areTherePreviousHeadersIDs(myDOMHeaders)) {
+		return;
+	}
+
+	// Try to set new ID to each headers in the DOM
+	await setNewIDs(myDOMHeaders)
 
 	// Set the new headers ID
 	genFunc.updateEditor(myDOM.window.document.getElementsByTagName('body')[0].innerHTML, theRange);
@@ -404,7 +385,7 @@ function createToC() {
 /**********************************************************************************************
  * 
  */
-async function validateAllHeaders() {
+function validateAllHeaders() {
 	// Get the active text editor
 	const myEditor = genFunc.getActiveEditor();
 	// If no editor opened then exit without any action
@@ -412,7 +393,7 @@ async function validateAllHeaders() {
 		return;
 	}
 
-	// Define diagnostics collection for the current Editor and empty the list
+	// Define the diagnostics for the current Editor and empty the list
 	headers_diagColl.set(vscode.window.activeTextEditor.document.uri, []);
 	// Clear previous diagnostics.
 	headers_diagColl.clear();
@@ -423,94 +404,7 @@ async function validateAllHeaders() {
 
 	// Create a DOM from the selected text in active editor
 	let myDOM = new JSDOM(myEditor.document.getText(theRange), { includeNodeLocations: true, contentType: "text/html" });
-
 	// Validate if headers respect the hierarchy and add error in "Problem" panel view
-	await validateHeader(myDOM);
-}
+	validateHeader(myDOM);
 
-
-
-function getDOM(fromSelectionOnly = true) {
-	let theRange;
-
-	const myEditor = genFunc.getActiveEditor();
-
-	if (fromSelectionOnly) {
-		theRange = genFunc.getRangeSelected(true);
-	} else {
-		theRange = new vscode.Range(myEditor.document.positionAt(0), myEditor.document.positionAt(myEditor.document.getText().length));
-	}
-
-	// Create a DOM from the selected text in active editor
-	let myDOM = new JSDOM(myEditor.document.getText(theRange), { includeNodeLocations: true, contentType: "text/html" });
-
-	return myDOM;
-}
-
-
-
-/**
- * Method to retrieve all IDs already set in the whole code no matter kind of elem
- * because ID must be unique in the code
- * Return an array that contains all IDs in the code (whole active editor not only the selected text)
-	*/
-function getAlreadyExistingIDs(excludeIDsInSelection = false) {
-	let previousIDs = [];
-	const myWholeDOM = getDOM(false);
-
-	// Get all headers in the DOM
-	//const myWholeDOMHeaders = myWholeDOM.window.document.querySelectorAll("h2,h3,h4,h5,h6");
-	const myWholeDOMIDs = myWholeDOM.window.document.querySelectorAll('*');
-
-	myWholeDOMIDs.forEach(function (tNode) {
-		if (tNode.id != '') {
-			previousIDs.push(tNode.id);
-		}
-	});
-
-	if (excludeIDsInSelection) {
-		let selectionIDs = [];
-		const mySelectionDOM = getDOM(true);
-
-		// Get all headers in the DOM
-		//const myWholeDOMHeaders = myWholeDOM.window.document.querySelectorAll("h2,h3,h4,h5,h6");
-		const mySelectionDOMIDs = mySelectionDOM.window.document.querySelectorAll('*');
-
-		mySelectionDOMIDs.forEach(function (tNode) {
-			if (tNode.id != '') {
-				selectionIDs.push(tNode.id);
-			}
-		});
-		previousIDs = previousIDs.filter(function (it) {
-			return selectionIDs.indexOf(it) < 0;
-		});
-	}
-	console.log(previousIDs);
-	return previousIDs;
-}
-
-
-
-
-
-async function getPrefixNewID() {
-	let newid = vscode.workspace.getConfiguration('html-headers-tools').prefixForNewIDs;
-
-	// Ask to user the beginning string of new headers
-	let options = vscode.InputBoxOptions = {
-		ignoreFocusOut: true,
-		prompt: "Define the beginning string of IDs?",
-		value: newid
-	};
-
-	// Display message to ask the begining string to use for new headers
-	await vscode.window.showInputBox(options).then(value => {
-		if (value == undefined) {
-			newid = undefined;
-		} else {
-			newid = value.toLowerCase();
-		}
-	});
-
-	return newid;
 }
