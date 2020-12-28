@@ -7,7 +7,7 @@ Concept related to this extension is based on that page can only have one H1 hea
 List of actual tools:
 + Validates hierarchical structure of headers (h2-h6). If a header level is passed over, an error is added to the VSCode 'Problems' tab.
 
-+ Set/Reset ID in headers. ID are used as anchor for table of contents of link that points directly to the right place.
++ Set/Reset ID in headers. IDs are used as anchor for table of contents of link that points directly to the right place. This function help to define ID in headers with a hierarchical structure. The format of id will look like: h_1, h_1_1, h_1_2, h_2, etc.
 
 + Create a nested list (UL) with links that point to each headers. It's used to create a table of contents.
 

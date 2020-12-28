@@ -24,7 +24,7 @@
 		"onCommand:html-headers-tools.validate_headers",
 		"onCommand:html-headers-tools.set_headers_ids"
 	],
-	"main": "./src/extension.js",
+	"main": "./dist/extension.js",
 	"contributes": {
 		"commands": [
 			{
