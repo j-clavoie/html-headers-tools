@@ -147,7 +147,7 @@ async function main_setHeadersIDs() {
 /**********************************************************************************************
  * Main method uses to create nedted list to use in table of contents.
  */
-function main_Create_ToC() {
+async function main_Create_ToC() {
 
 	// Get the active text editor
 	const myEditor = genFunc.getActiveEditor();
@@ -156,23 +156,27 @@ function main_Create_ToC() {
 	}
 
 	// Get the DOM from the selected part of code
-	let myDOM = getDOM(false);
+	let myDOM = getDOM();
 
 	// Validate if headers respect the hierarchy and add error in "Problem" panel view
-	let myDOMHeaders = validateHeader(myDOM);
-	if (myDOMHeaders == undefined || myDOMHeaders == false) {
+	const headersAreOK = validateHeader(myDOM);
+	if (headersAreOK == undefined || headersAreOK == false) {
+		vscode.window.showErrorMessage("There are issues with headers, please consult the 'Problems' tab for more details.");
 		return;
 	}
 
+	// Get All Headers in DOM
+	const myDOMHeaders = myDOM.window.document.querySelectorAll("h2,h3,h4,h5,h6");
+
 	// check if header(s) have IDs.
 	// If no, then exit.
-	if (areTherePreviousHeadersIDs(myDOMHeaders, false)) {
+	if (await areTherePreviousHeadersIDs(myDOMHeaders, false)) {
 		// Create the HTML code of nested LIST (UL/LI)
 		const htmlList = createHTMLList(myDOMHeaders);
 
 		if (htmlList != '' && htmlList != null) {
 			// Get the selected text/position where to add the list
-			const ToCPlace = genFunc.getTextSelected();
+			const ToCPlace = genFunc.getRangeSelected(false);
 
 			// Put the HTML list in the editor at cursor place
 			genFunc.updateEditor(htmlList, ToCPlace);
@@ -240,14 +244,13 @@ function createHTMLList(DOMheaders) {
 
 
 /**********************************************************************************************
- * Method to validate and get Headers, and to add Diagnostics to 
- * Problems Tab view if problems occur.
+ * Method to validate headers, and to add Diagnostics in the Problems Tab view if it's case.
  * @param {JSDOM} myDOM JSDOM
- * Return: A sub-DOM that contains all headers (h2 to h6)
- * 			   false - if error is present in the headers hierarchy
+ * Return: TRUE - if headers are OK
+ * 				 FALSE - if error is present in the headers hierarchy
  * 				 undefined - if no headers exist in the DOM passed in parameter
  */
-async function validateHeader(myDOM) {
+function validateHeader(myDOM) {
 
 	// Create the array that store all Diagnoctics found in code
 	let allDiags = [];
@@ -299,7 +302,6 @@ async function validateHeader(myDOM) {
 }
 
 
-areTherePreviousHeadersIDs()
 /**********************************************************************************************
  * Method to check if headers passed in parameters already have ID
  * @param {JSDOM} myDOMHeaders DOM array that contains only headers (h2 to h6)

@@ -2,7 +2,7 @@
 	"name": "html-headers-tools",
 	"displayName": "HTML Headers tools",
 	"description": "Script that help to manage headers (h2 to h6), validate hierarchy, and create the list used inside a table of contents",
-	"version": "0.0.8",
+	"version": "0.0.9",
 	"publisher": "j-clavoie",
 	"engines": {
 		"vscode": "^1.30.0"
